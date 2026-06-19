@@ -1,0 +1,23 @@
+{
+  "tick_seconds": 1,
+  "servers": [
+    {
+      "id": "s1",
+      "cpu_units_per_tick": 20,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 5
+    },
+    {
+      "id": "s2",
+      "cpu_units_per_tick": 20,
+      "mem_mb": 256,
+      "rate_limit_per_sec": 5
+    },
+    {
+      "id": "s3",
+      "cpu_units_per_tick": 20,
+      "mem_mb": 1024,
+      "rate_limit_per_sec": 5
+    }
+  ]
+}
