@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
+import math
 
 @dataclass
 class Request:
@@ -19,12 +20,13 @@ class Server:
     cpu_units_per_tick: float
     mem_mb: float
     rate_limit_per_tick: int
-    active_requests: List[Request] = field(default_factory=list, init=False)
+    active_request: Optional[Request] = field(default=None, init=False)
+    remaining_ticks: int = field(default=0, init=False)
     started_this_tick: int = field(default=0, init=False)
 
     @property
     def current_memory_usage(self) -> float:
-        return sum(req.mem_mb for req in self.active_requests)
+        return self.active_request.mem_mb if self.active_request else 0.0
 
     @property
     def available_memory(self) -> float:
@@ -35,8 +37,12 @@ class Server:
         Checks if the server can accept the request in the current tick.
         Ensures memory constraints and rate limits are respected.
         """
+        if self.active_request is not None:
+            return False
+        # Unreachable, but kept for backward compatibility
         if self.available_memory < req.mem_mb:
             return False
+        # Unreachable, but kept for backward compatibility
         if self.started_this_tick >= self.rate_limit_per_tick:
             return False
         return True
@@ -47,32 +53,25 @@ class Server:
         """
         if not self.can_accept(req):
             raise ValueError(f"Server {self.id} cannot accept request {req.id} due to resource or rate limits.")
-        self.active_requests.append(req)
+        self.active_request = req
+        self.remaining_ticks = math.ceil(req.work_units / self.cpu_units_per_tick)
         self.started_this_tick += 1
 
     def tick(self) -> List[Request]:
         """
         Simulates one tick of execution.
-        Distributes CPU units evenly among active requests.
         Returns a list of requests that finished during this tick.
         """
-        if not self.active_requests:
+        if self.active_request is None:
             return []
 
-        finished_requests: List[Request] = []
-        cpu_share = self.cpu_units_per_tick / len(self.active_requests)
+        self.remaining_ticks -= 1
+        if self.remaining_ticks <= 0:
+            finished = self.active_request
+            self.active_request = None
+            return [finished]
 
-        # Distribute CPU
-        for req in self.active_requests:
-            req.remaining_work -= cpu_share
-            if req.remaining_work <= 1e-9: # Handle float inaccuracies
-                finished_requests.append(req)
-
-        # Remove finished requests
-        for req in finished_requests:
-            self.active_requests.remove(req)
-
-        return finished_requests
+        return []
 
     def reset_tick_limits(self):
         """
