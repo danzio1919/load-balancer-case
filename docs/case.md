@@ -137,17 +137,14 @@ PS: Events at time `t` describe the system state after processing tick `t-1` (or
 
 ### 4. Execution Model
 
-A server may execute multiple requests concurrently, as long as:
+A server executes requests **non-concurrently** (one request per server at a time):
 
-- Total reserved memory does not exceed `mem_mb`
-- Per-tick CPU allocation does not exceed `cpu_units_per_tick`
-- Rate limits are respected: Rate limit is enforced as: `max REQUEST_STARTED events per server per tick <= rate_limit_per_sec`
-
-- Memory is reserved for the full duration of a request's execution. Each request has `work_units`.
-- At each tick, a server distributes its `cpu_units_per_tick` evenly across all currently running requests.
-- A request's remaining work is reduced by its allocated CPU share each tick.
-- A request finishes when its remaining work reaches zero or below.
-- All CPU allocation and completion checks must occur in a deterministic order.
+- **No Overlapping Runs**: A server can only process exactly one request at a time. It cannot start a new request until the currently running request is fully finished.
+- **Resource Dedication**: The running request uses the server's full `cpu_units_per_tick` capacity.
+- **Runtime Calculation**: A request's total execution time in ticks is calculated as `ceil(work_units / cpu_units_per_tick)`.
+- **Memory Check**: A server can only accept a request if its `mem_mb` is sufficient (since only one request runs, this simplifies to `request.mem_mb <= server.mem_mb`).
+- **Rate Limits**: The rate limit constraint (`max REQUEST_STARTED events per server per tick <= rate_limit_per_sec`) is mathematically satisfied by the non-overlap constraint, as a server can only start at most 1 request per tick.
+- All checks must occur in a deterministic order.
 - If multiple completion or scheduling decisions are possible within the same tick, the tie-breaking strategy must be explicitly documented.
 
 ## Optional (Bonus)
