@@ -7,8 +7,16 @@ services:
       dockerfile: Dockerfile
     ports:
       - "127.0.0.1:8000:8000"
-
     volumes:
       - .:/app
     env_file:
       - .env
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - backend
