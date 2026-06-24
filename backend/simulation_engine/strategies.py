@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+import math
+
 from simulation_engine.models import Request, Server
 
 class SchedulingStrategy(ABC):
@@ -74,13 +76,13 @@ class BestFitStrategy(SchedulingStrategy):
             return None
 
         # Sort by:
-        # 1. Minimize Runtime: (work_units + cpu - 1) // cpu (ascending)
+        # 1. Minimize Runtime: math.ceil(work_units / cpu) (ascending)
         # 2. Minimize CPU Waste: cpu (ascending)
         # 3. Minimize RAM Waste: mem_mb (ascending)
         # 4. Tie-Breaker: id (ascending)
         available_servers.sort(
             key=lambda s: (
-                (int(request.work_units) + int(s.cpu_units_per_tick) - 1) // int(s.cpu_units_per_tick),
+                math.ceil(request.work_units / s.cpu_units_per_tick) if s.cpu_units_per_tick > 0 else float('inf'),
                 s.cpu_units_per_tick,
                 s.mem_mb,
                 s.id
