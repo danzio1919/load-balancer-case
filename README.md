@@ -70,3 +70,7 @@ docker compose exec backend pytest
 - `scenarios/`: Test cases containing input files (`servers.json`, `requests.csv`) and output trace logs (`run.jsonl`).
 
 For a detailed explanation of the scheduler algorithms, assumptions, and design choices, see [Design Documentation](docs/design_document.md).
+
+### Evaluation Artifacts
+
+As per the assignment requirements, a pre-generated, valid `run.jsonl` trace example is located at the root of this repository.
