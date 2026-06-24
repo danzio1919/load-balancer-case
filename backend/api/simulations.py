@@ -2,15 +2,21 @@ from fastapi import APIRouter, BackgroundTasks, status, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime
+from typing import List
 
 from services.simulation_service import start_simulation, run_simulation_task, clear_simulation_running
 from db.database import get_db
 from db.models import DBRun
 from simulation_engine.strategy_registry import STRATEGY_MAP, get_strategy_names
+from schemas.simulation import (
+    StrategyResponse, SimulationTriggerRequest, SimulationTriggerResponse,
+    PaginationParams, SimulationRunResponse, PaginatedSimulationResponse,
+    SimulationMetricsResponse
+)
 
 router = APIRouter(prefix="/simulations", tags=["simulation"])
 
-@router.get("/strategies")
+@router.get("/strategies", response_model=List[StrategyResponse])
 def get_strategies():
     """
     Returns available scheduling strategies.
@@ -20,25 +26,25 @@ def get_strategies():
         for key, (_, display_name) in STRATEGY_MAP.items()
     ]
 
-@router.post("", status_code=status.HTTP_202_ACCEPTED)
+@router.post("", status_code=status.HTTP_202_ACCEPTED, response_model=SimulationTriggerResponse)
 async def trigger_simulation(
     background_tasks: BackgroundTasks,
-    strategy_name: str = "least_loaded_memory",
+    request: SimulationTriggerRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
     Triggers a simulation execution in the background if none is currently active.
     Immediately creates a DBRun row with status='processing' and returns 202.
     """
-    if strategy_name not in get_strategy_names():
+    if request.strategy_name not in get_strategy_names():
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid strategy name '{strategy_name}'. Valid strategies are: {', '.join(get_strategy_names())}"
+            detail=f"Invalid strategy name '{request.strategy_name}'. Valid strategies are: {', '.join(get_strategy_names())}"
         )
 
     # start_simulation raises SimulationRunningError if already active
     try:
-        run_filename = start_simulation(strategy_name)
+        run_filename = start_simulation(request.strategy_name)
     except Exception as e:
         # Check if already running
         raise HTTPException(
@@ -51,7 +57,7 @@ async def trigger_simulation(
     db_run = DBRun(
         id=run_filename,
         status="processing",
-        strategy_name=strategy_name,
+        strategy_name=request.strategy_name,
         created_at=created_at,
         is_valid=False
     )
@@ -69,7 +75,7 @@ async def trigger_simulation(
         )
     
     # Enqueue execution
-    background_tasks.add_task(run_simulation_task, run_filename, strategy_name)
+    background_tasks.add_task(run_simulation_task, run_filename, request.strategy_name)
     
     return {
         "message": "Simulation run accepted and started in background.",
@@ -77,21 +83,15 @@ async def trigger_simulation(
         "status": "processing"
     }
 
-@router.get("")
+@router.get("", response_model=PaginatedSimulationResponse)
 async def get_simulation_runs(
-    page: int = 1,
-    page_size: int = 10,
+    pagination: PaginationParams = Depends(),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Returns a paginated list of past simulation runs.
     """
-    if page < 1:
-        page = 1
-    if page_size < 1:
-        page_size = 10
-        
-    offset = (page - 1) * page_size
+    offset = (pagination.page - 1) * pagination.page_size
     
     total_count_query = select(func.count(DBRun.id))
     total_count_result = await db.execute(total_count_query)
@@ -101,7 +101,7 @@ async def get_simulation_runs(
         select(DBRun)
         .order_by(DBRun.id.desc())
         .offset(offset)
-        .limit(page_size)
+        .limit(pagination.page_size)
     )
     runs_result = await db.execute(runs_query)
     db_runs = runs_result.scalars().all()
@@ -122,11 +122,11 @@ async def get_simulation_runs(
     return {
         "items": items,
         "total": total,
-        "page": page,
-        "page_size": page_size
+        "page": pagination.page,
+        "page_size": pagination.page_size
     }
 
-@router.get("/{sim_id}")
+@router.get("/{sim_id}", response_model=SimulationRunResponse)
 async def get_simulation_status(sim_id: str, db: AsyncSession = Depends(get_db)):
     """
     Returns the status and basic details of a specific simulation run.
@@ -148,7 +148,7 @@ async def get_simulation_status(sim_id: str, db: AsyncSession = Depends(get_db))
         "is_valid": db_run.is_valid
     }
 
-@router.get("/{sim_id}/metrics")
+@router.get("/{sim_id}/metrics", response_model=SimulationMetricsResponse)
 async def get_simulation_metrics(sim_id: str, db: AsyncSession = Depends(get_db)):
     """
     Fetches computed metrics for a specific simulation run by its ID.
