@@ -1,0 +1,35 @@
+{
+  "tick_seconds": 1,
+  "servers": [
+    {
+      "id": "s1",
+      "cpu_units_per_tick": 5,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 4
+    },
+    {
+      "id": "s2",
+      "cpu_units_per_tick": 10,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 3
+    },
+    {
+      "id": "s3",
+      "cpu_units_per_tick": 5,
+      "mem_mb": 2048,
+      "rate_limit_per_sec": 2
+    },
+    {
+      "id": "s4",
+      "cpu_units_per_tick": 20,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 2
+    },
+    {
+      "id": "s5",
+      "cpu_units_per_tick": 5,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 3
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "tick_seconds": 1,
+  "servers": [
+    {
+      "id": "s01",
+      "cpu_units_per_tick": 20,
+      "mem_mb": 256,
+      "rate_limit_per_sec": 7
+    },
+    {
+      "id": "s02",
+      "cpu_units_per_tick": 3,
+      "mem_mb": 256,
+      "rate_limit_per_sec": 7
+    },
+    {
+      "id": "s03",
+      "cpu_units_per_tick": 7,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 2
+    },
+    {
+      "id": "s04",
+      "cpu_units_per_tick": 7,
+      "mem_mb": 256,
+      "rate_limit_per_sec": 5
+    },
+    {
+      "id": "s05",
+      "cpu_units_per_tick": 10,
+      "mem_mb": 512,
+      "rate_limit_per_sec": 7
+    },
+    {
+      "id": "s06",
+      "cpu_units_per_tick": 10,
+      "mem_mb": 256,
+      "rate_limit_per_sec": 4
+    },
+    {
+      "id": "s07",
+      "cpu_units_per_tick": 10,
+      "mem_mb": 256,
+      "rate_limit_per_sec": 7
+    },
+    {
+      "id": "s08",
+      "cpu_units_per_tick": 10,
+      "mem_mb": 1024,
+      "rate_limit_per_sec": 7
+    },
+    {
+      "id": "s09",
+      "cpu_units_per_tick": 3,
+      "mem_mb": 1024,
+      "rate_limit_per_sec": 7
+    },
+    {
+      "id": "s10",
+      "cpu_units_per_tick": 7,
+      "mem_mb": 1024,
+      "rate_limit_per_sec": 7
+    }
+  ]
+}
