@@ -106,12 +106,9 @@ async def sync_db_to_json():
                     "servers": servers_list
                 }
                 
-                # Write atomically using a temp file
-                temp_path = f"{settings.SERVERS_PATH}.tmp"
-                async with aiofiles.open(temp_path, "w", encoding="utf-8") as f:
+                async with aiofiles.open(settings.SERVERS_PATH, "w", encoding="utf-8") as f:
                     await f.write(json.dumps(out_data, indent=2))
                     
-                os.replace(temp_path, settings.SERVERS_PATH)
                 logger.info(f"Successfully synced DB state to {settings.SERVERS_PATH} ({len(servers_list)} servers)")
             except Exception as e:
                 logger.error(f"Error syncing database to JSON: {e}", exc_info=True)
