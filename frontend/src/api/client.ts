@@ -34,8 +34,8 @@ export const client = {
   },
 
   runSimulation: async (strategyName?: string): Promise<SimulationResponse> => {
-    const url = strategyName ? `/simulations?strategy_name=${encodeURIComponent(strategyName)}` : '/simulations';
-    const response = await api.post<SimulationResponse>(url);
+    const payload = strategyName ? { strategy_name: strategyName } : {};
+    const response = await api.post<SimulationResponse>('/simulations', payload);
     return response.data;
   },
 
