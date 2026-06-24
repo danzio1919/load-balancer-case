@@ -1,6 +1,7 @@
 
 services:
   backend:
+    container_name: medsien-case-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -12,6 +13,7 @@ services:
       - .env
 
   frontend:
+    container_name: medsien-case-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
