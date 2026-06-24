@@ -13,6 +13,7 @@ services:
       - ./requests.csv:/app/requests.csv
       - ./run.jsonl:/app/run.jsonl
       - ./runs:/app/runs
+      - ./validate_run.py:/app/validate_run.py
     env_file:
       - .env
 
