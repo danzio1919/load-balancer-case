@@ -14,6 +14,9 @@ services:
       - ./run.jsonl:/app/run.jsonl
       - ./runs:/app/runs
       - ./validate_run.py:/app/validate_run.py
+      - ./run_simulation.py:/app/run_simulation.py
+      - ./scenarios:/app/scenarios
+      - ./tests:/app/tests
     env_file:
       - .env
 
