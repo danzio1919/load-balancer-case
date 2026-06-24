@@ -8,7 +8,11 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - .:/app
+      - ./backend:/app/backend
+      - ./servers.json:/app/servers.json
+      - ./requests.csv:/app/requests.csv
+      - ./run.jsonl:/app/run.jsonl
+      - ./runs:/app/runs
     env_file:
       - .env
 
