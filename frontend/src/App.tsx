@@ -4,6 +4,8 @@ import { client } from './api/client';
 import { ServerForm } from './components/ServerForm';
 import { ServerTable } from './components/ServerTable';
 import { SimulationControl } from './components/SimulationControl';
+import { RunHistory } from './components/RunHistory';
+import { MetricsDashboard } from './components/MetricsDashboard';
 import { Toaster, toast } from 'sonner';
 import { Server as ServerIcon, RefreshCw, Layers } from 'lucide-react';
 
@@ -11,6 +13,8 @@ function App() {
   const [servers, setServers] = useState<Server[]>([]);
   const [editingServer, setEditingServer] = useState<Server | null>(null);
   const [loading, setLoading] = useState(true);
+  const [latestRunFile, setLatestRunFile] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchServers = async () => {
     setLoading(true);
@@ -76,7 +80,24 @@ function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         <section>
-          <SimulationControl />
+          <SimulationControl
+            onSimulationFinished={(runFile) => {
+              setLatestRunFile(runFile);
+              setRefreshTrigger((prev) => prev + 1);
+            }}
+          />
+        </section>
+
+        <section>
+          <RunHistory
+            selectedRunId={latestRunFile}
+            onSelectRun={(runId) => setLatestRunFile(runId)}
+            refreshTrigger={refreshTrigger}
+          />
+        </section>
+
+        <section>
+          <MetricsDashboard runFile={latestRunFile} />
         </section>
         
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
