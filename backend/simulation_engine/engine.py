@@ -33,6 +33,7 @@ class SimulationEngine:
             
         self.current_tick = 0
         self.finished_in_previous_tick: List[Tuple[Request, Server]] = []
+        self.max_server_mem = max((srv.mem_mb for srv in self.load_balancer.servers.values()), default=0.0)
 
     def run(self, output_filepath: str):
         """
@@ -82,11 +83,10 @@ class SimulationEngine:
                     
                 # 4. Schedule
                 # Drop inherently unsatisfiable requests (e.g. req.mem_mb > max server capacity)
-                max_server_mem = max((srv.mem_mb for srv in self.load_balancer.servers.values()), default=0.0)
                 unsatisfiable_requests = []
                 remaining_queue = []
                 for req in self.load_balancer.queue:
-                    if req.mem_mb > max_server_mem:
+                    if req.mem_mb > self.max_server_mem:
                         unsatisfiable_requests.append(req)
                     else:
                         remaining_queue.append(req)
