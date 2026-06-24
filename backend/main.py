@@ -1,13 +1,6 @@
 from contextlib import asynccontextmanager
-import sys
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-# Ensure the backend directory is in python path to resolve modules correctly
-backend_path = os.path.dirname(os.path.abspath(__file__))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
 
 from api.router import api_router
 from core.exceptions import (
