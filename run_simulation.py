@@ -59,26 +59,36 @@ def load_requests(path: Path) -> list:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: ./run_simulation.py <scenario>")
-        print("       Available scenarios:", list_scenarios())
-        sys.exit(1)
+        # Fallback to root configuration if no scenario argument is provided
+        root_dir = Path(__file__).parent
+        servers_path  = root_dir / "servers.json"
+        requests_path = root_dir / "requests.csv"
+        output_path   = root_dir / "run.jsonl"
+        print("\n=== Scenario: Root Configuration ===")
+    else:
+        scenario = sys.argv[1]
+        scenario_dir = Path(__file__).parent / "scenarios" / scenario
 
-    scenario = sys.argv[1]
-    scenario_dir = Path(__file__).parent / "scenarios" / scenario
+        if not scenario_dir.is_dir():
+            print(f"Error: scenario '{scenario}' not found at {scenario_dir}")
+            print("       Available scenarios:", list_scenarios())
+            sys.exit(1)
 
-    if not scenario_dir.is_dir():
-        print(f"Error: scenario '{scenario}' not found at {scenario_dir}")
-        print("       Available scenarios:", list_scenarios())
-        sys.exit(1)
+        servers_path  = scenario_dir / "servers.json"
+        requests_path = scenario_dir / "requests.csv"
+        output_path   = scenario_dir / "run.jsonl"
+        print(f"\n=== Scenario: {scenario} ===")
 
-    servers_path  = scenario_dir / "servers.json"
-    requests_path = scenario_dir / "requests.csv"
-    output_path   = scenario_dir / "run.jsonl"
-
-    print(f"\n=== Scenario: {scenario} ===")
     print(f"  servers  : {servers_path}")
     print(f"  requests : {requests_path}")
     print(f"  output   : {output_path}\n")
+
+    if not servers_path.exists():
+        print(f"Error: servers file not found at {servers_path}")
+        sys.exit(1)
+    if not requests_path.exists():
+        print(f"Error: requests file not found at {requests_path}")
+        sys.exit(1)
 
     servers  = load_servers(servers_path)
     requests = load_requests(requests_path)
