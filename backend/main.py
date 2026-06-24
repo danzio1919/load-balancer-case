@@ -18,7 +18,7 @@ from core.exceptions import (
     simulation_running_handler,
     duplicate_server_handler
 )
-from services.sync_service import seed_db_from_json
+from services.sync_service import seed_db_from_json, cleanup_stale_runs
 from core.logging import get_logger
 from core.config import settings
 
@@ -26,9 +26,10 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Seed database from servers.json
-    logger.info("Application starting up. Seeding SQLite database from servers.json...")
+    # Startup: Seed database from servers.json and clean up stale runs
+    logger.info("Application starting up. Seeding SQLite database and cleaning up stale runs...")
     await seed_db_from_json()
+    await cleanup_stale_runs()
     yield
     # Shutdown
     logger.info("Application shutting down.")

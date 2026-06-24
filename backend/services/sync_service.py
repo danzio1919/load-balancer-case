@@ -5,11 +5,29 @@ import aiofiles
 from sqlalchemy import select, delete
 from core.config import settings
 from core.logging import get_logger
-from db.models import DBServer
+from db.models import DBServer, DBRun
 from db.database import SessionLocal, engine, Base
 
 logger = get_logger(__name__)
 _sync_lock = asyncio.Lock()
+
+async def cleanup_stale_runs():
+    """
+    Finds any simulation runs with status='processing' and marks them as 'failed'
+    since they are stale across server restarts.
+    """
+    async with SessionLocal() as db:
+        try:
+            result = await db.execute(select(DBRun).filter(DBRun.status == "processing"))
+            stale_runs = result.scalars().all()
+            if stale_runs:
+                for run in stale_runs:
+                    run.status = "failed"
+                await db.commit()
+                logger.info(f"Cleaned up {len(stale_runs)} stale 'processing' runs to 'failed'")
+        except Exception as e:
+            await db.rollback()
+            logger.error(f"Error cleaning up stale runs: {e}", exc_info=True)
 
 async def seed_db_from_json():
     """

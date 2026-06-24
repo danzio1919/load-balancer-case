@@ -174,6 +174,24 @@ class TestSimulationEngine(unittest.TestCase):
         ]
         self.assertEqual(arrivals, expected_arrivals)
 
+    def test_unsatisfiable_request_dropped(self):
+        # 1 Server with 100MB Memory
+        # 1 Request requiring 200MB Memory
+        # It should be dropped, emitting REQUEST_ARRIVED and REQUEST_DROPPED.
+        servers = [Server(id="s1", cpu_units_per_tick=10.0, mem_mb=100.0, rate_limit_per_tick=2)]
+        requests = [Request(id="r_large", arrival_t=0, work_units=25.0, mem_mb=200.0)]
+
+        engine = SimulationEngine(servers=servers, requests=requests)
+        engine.run(self.output_path)
+
+        events = self.read_events()
+        expected_events = [
+            {"t": 0, "event": "REQUEST_ARRIVED", "request_id": "r_large"},
+            {"t": 0, "event": "REQUEST_DROPPED", "request_id": "r_large"}
+        ]
+        self.assertEqual(events, expected_events)
+        self.assertEqual(engine.current_tick, 0)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -81,6 +81,24 @@ class SimulationEngine:
                     srv.reset_tick_limits()
                     
                 # 4. Schedule
+                # Drop inherently unsatisfiable requests (e.g. req.mem_mb > max server capacity)
+                max_server_mem = max((srv.mem_mb for srv in self.load_balancer.servers.values()), default=0.0)
+                unsatisfiable_requests = []
+                remaining_queue = []
+                for req in self.load_balancer.queue:
+                    if req.mem_mb > max_server_mem:
+                        unsatisfiable_requests.append(req)
+                    else:
+                        remaining_queue.append(req)
+                self.load_balancer.queue = remaining_queue
+                
+                for req in unsatisfiable_requests:
+                    tick_events.append({
+                        "t": self.current_tick,
+                        "event": "REQUEST_DROPPED",
+                        "request_id": req.id
+                    })
+
                 # Call load_balancer.tick_schedule() and emit REQUEST_STARTED for successfully scheduled pairs.
                 scheduled_pairs = self.load_balancer.tick_schedule()
                 for req, srv in scheduled_pairs:
