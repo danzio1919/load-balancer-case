@@ -6,8 +6,8 @@ class DBServer(Base):
     __tablename__ = "servers"
 
     id = Column(String, primary_key=True, index=True)
-    cpu_units_per_tick = Column(Float, nullable=False)
-    mem_mb = Column(Float, nullable=False)
+    cpu_units_per_tick = Column(Integer, nullable=False)
+    mem_mb = Column(Integer, nullable=False)
     rate_limit_per_sec = Column(Integer, nullable=False)
 
 class DBRun(Base):

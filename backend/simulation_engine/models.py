@@ -6,30 +6,30 @@ import math
 class Request:
     id: str
     arrival_t: int
-    work_units: float
-    mem_mb: float
-    remaining_work: float = field(init=False)
+    work_units: int
+    mem_mb: int
+    remaining_work: int = field(init=False)
 
     def __post_init__(self):
-        self.remaining_work = float(self.work_units)
+        self.remaining_work = int(self.work_units)
 
 
 @dataclass
 class Server:
     id: str
-    cpu_units_per_tick: float
-    mem_mb: float
+    cpu_units_per_tick: int
+    mem_mb: int
     rate_limit_per_tick: int
     active_request: Optional[Request] = field(default=None, init=False)
     remaining_ticks: int = field(default=0, init=False)
     started_this_tick: int = field(default=0, init=False)
 
     @property
-    def current_memory_usage(self) -> float:
-        return self.active_request.mem_mb if self.active_request else 0.0
+    def current_memory_usage(self) -> int:
+        return self.active_request.mem_mb if self.active_request else 0
 
     @property
-    def available_memory(self) -> float:
+    def available_memory(self) -> int:
         return self.mem_mb - self.current_memory_usage
 
     def can_accept(self, req: Request) -> bool:
